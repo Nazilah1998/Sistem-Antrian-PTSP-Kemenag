@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-kemenag-green: #008f51;
+  --color-kemenag-green-dark: #00663a;
+  --color-kemenag-gold: #f5b041;
+  --color-kemenag-gold-dark: #d4ac0d;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f0fdf4 0%, #e2f7ea 100%);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
