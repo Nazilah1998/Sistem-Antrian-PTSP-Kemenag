@@ -82,7 +82,7 @@ const speakQueue = (code: string, number: string, loket: string) => {
 
 const fetchInitialQueue = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/queue/active');
+    const res = await axios.get('http://127.0.0.1:3000/api/queue/active');
     let latestQueue: any = null;
     res.data.forEach((item: any) => {
       if (item.queue && (!latestQueue || new Date(item.queue.createdAt) > new Date(latestQueue.queue.createdAt))) {

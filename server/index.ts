@@ -6,6 +6,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -51,7 +56,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Category Route
-app.get('/api/categories', async (req, res) => {
+app.get('/api/categories', async (_req, res) => {
   try {
     const categories = await prisma.category.findMany();
     res.json(categories);
@@ -73,7 +78,7 @@ app.post('/api/queue/call', async (req, res) => {
     // Get latest queue for this category
     const lastQueue = await prisma.queue.findFirst({
       where: { categoryId: Number(categoryId) },
-      orderBy: { number: 'desc' }
+      orderBy: { createdAt: 'desc' }
     });
 
     const nextNumber = lastQueue ? lastQueue.number + 1 : 1;
@@ -133,8 +138,56 @@ app.post('/api/queue/recall', async (req, res) => {
   }
 });
 
+// Adjust Route (Dynamic edit, increment, decrement)
+app.post('/api/queue/adjust', async (req, res) => {
+  const { categoryId, action, value, counter } = req.body;
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    jwt.verify(token, JWT_SECRET);
+
+    const lastQueue = await prisma.queue.findFirst({
+      where: { categoryId: Number(categoryId) },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let newNumber = lastQueue ? lastQueue.number : 0;
+
+    if (action === 'INCREMENT') {
+      newNumber += 1;
+    } else if (action === 'DECREMENT') {
+      newNumber = Math.max(0, newNumber - 1);
+    } else if (action === 'SET') {
+      newNumber = Math.max(0, Number(value) || 0);
+    }
+
+    const newQueue = await prisma.queue.create({
+      data: {
+        number: newNumber,
+        status: 'CALLED',
+        categoryId: Number(categoryId)
+      },
+      include: {
+        category: true
+      }
+    });
+
+    io.emit('queue-called', {
+      queue: newQueue,
+      counter: counter || '01'
+    });
+
+    res.json(newQueue);
+  } catch (error) {
+    console.error(error);
+    res.status(401).json({ error: 'Invalid token or server error' });
+  }
+});
+
 // Current active queues per category (for TV Display)
-app.get('/api/queue/active', async (req, res) => {
+app.get('/api/queue/active', async (_req, res) => {
   try {
     const categories = await prisma.category.findMany();
     const activeQueues = await Promise.all(
@@ -153,6 +206,19 @@ app.get('/api/queue/active', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Health check for Coolify
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Fallback for Vue Router (SPA)
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // Realtime connection handler
