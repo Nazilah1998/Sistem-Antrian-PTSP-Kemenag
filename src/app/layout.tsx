@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import MaintenanceBlocker from '@/components/MaintenanceBlocker';
+import { checkPusdatinMaintenance } from '@/lib/pusdatin';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -22,15 +23,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Direct Server-Side check before rendering any HTML to browser
+  const maintenanceStatus = await checkPusdatinMaintenance();
+
   return (
     <html lang="id" className={plusJakartaSans.variable}>
       <body className="min-h-screen font-sans bg-slate-950 text-slate-100 antialiased selection:bg-emerald-600 selection:text-white">
-        <MaintenanceBlocker>{children}</MaintenanceBlocker>
+        <MaintenanceBlocker initialIsMaintenance={maintenanceStatus.isMaintenance}>
+          {children}
+        </MaintenanceBlocker>
       </body>
     </html>
   );
