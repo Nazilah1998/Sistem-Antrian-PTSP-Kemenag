@@ -1,5 +1,31 @@
-# Vue 3 + TypeScript + Vite
+# PTSP Loket Kemenag - Next.js Full Stack
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Sistem Antrian & Pelayanan Loket Terpadu Satu Pintu (PTSP) Kementerian Agama berbasis Next.js Full Stack, Supabase PostgreSQL, Drizzle ORM, dan Cloudflare Turnstile.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Stack Teknologi
+- **Framework**: Next.js 14 (App Router) & React 18
+- **Database**: Supabase PostgreSQL (`kemenag_loket` schema)
+- **ORM**: Drizzle ORM & Drizzle Kit
+- **Keamanan**: Cloudflare Turnstile
+- **Styling**: Tailwind CSS & Lucide Icons
+- **Realtime**: Supabase Realtime Broadcasting & Web Speech API (TTS Bahasa Indonesia)
+
+## Perintah Pengembangan
+
+```bash
+# Inisialisasi dependensi
+npm install
+
+# Sinkronisasi schema database ke Supabase
+npx drizzle-kit push
+
+# Seed data kategori awal & user admin
+npm run db:seed
+
+# Jalankan server pengembangan
+npm run dev
+
+# Build produksi
+npm run build
+npm start
+```
